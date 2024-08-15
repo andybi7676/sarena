@@ -1,10 +1,10 @@
 import React from 'react';
-import WebSocketTester from './components/WebSocketTester';
+import { WebSocketTester, WebRTCTester } from './components';
 
 function App() {
   return (
     <div className="App">
-      <WebSocketTester />
+      <WebRTCTester />
     </div>
   );
 }
