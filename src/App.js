@@ -1,10 +1,11 @@
 import React from 'react';
-import { WebSocketTester, WebRTCTester } from './components';
+import { HeaderBanner, ChallengePage } from './components';
 
 function App() {
   return (
     <div className="App">
-      <WebRTCTester />
+      <HeaderBanner />
+      <ChallengePage />
     </div>
   );
 }
