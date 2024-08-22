@@ -1,4 +1,5 @@
 import HeaderBanner from "./HeaderBanner";
+import NavBar from "./NavBar";
 import ChallengePage from "./ChallengePage";
 
 import HumanMachineInterface from "./HumanMachineInterface";
@@ -10,6 +11,7 @@ import WebRTCTester from "./WebRTCTester";
 
 export { 
   HeaderBanner,
+  NavBar,
   ChallengePage,
   HumanMachineInterface,
   Chatbox,

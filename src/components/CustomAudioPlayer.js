@@ -13,7 +13,7 @@ const playList = [
 
 export default function CustomAudioPlayer() {
   return (
-    <div class="w-full border m-2">
+    <div class="w-full m-1">
       {/* <AudioPlayer playList={[]}/> */}
       
     </div>
