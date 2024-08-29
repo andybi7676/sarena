@@ -1,8 +1,28 @@
 import React, { useEffect } from 'react'
 import { Button, Textarea } from '@headlessui/react'
-import { Message } from './subcomponents'
+import { Message } from './molecules';
 
 const messages = [
+  {
+    sender: 'user',
+    content: 'Hello, how are you?'
+  },
+  {
+    sender: 'bot',
+    content: 'I am fine, thank you.'
+  },
+  {
+    sender: 'bot',
+    content: 'How can I help you today?'
+  },
+  {
+    sender: 'user',
+    content: 'I need help with my travel plan.'
+  },
+  {
+    sender: 'bot',
+    content: 'Sure, where are you planning to go?'
+  },
   {
     sender: 'user',
     content: 'Hello, how are you?'
@@ -44,7 +64,7 @@ export default function Chatbox() {
 
   
   return <div className='w-full pb-2'>
-    <div className='mb-4 p-2 w-full h-96 flex flex-col flex-wrap items-center rounded-xl bg-gray-700 '>
+    <div className='mb-4 p-2 w-full h-96 flex flex-col overflow-auto flex-nowrap items-center rounded-lg bg-gray-700 '>
       {
         messages.map((message, index) => {
           return <Message key={index} message={message}/>
