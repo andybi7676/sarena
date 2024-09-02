@@ -3,8 +3,10 @@ import TalkingHead from './TalkingHead';
 import CustomAudioPlayer from './CustomAudioPlayer';
 import EvaluationPanel from './EvaluationPanel';
 
-const modelAAudioSrc = require("../demo/model_A.flac");
-const modelBAudioSrc = require("../demo/model_B.flac");
+// const modelAAudioSrc = require("../demo/model_A.flac");
+// const modelBAudioSrc = require("../demo/model_B.flac");
+const modelAAudioSrc = require("../demo/output_modelA.wav");
+const modelBAudioSrc = require("../demo/output_modelB.wav");
 
 function MachineMachineInterface() {
   const [isPlaying, setIsPlaying] = React.useState(false);
