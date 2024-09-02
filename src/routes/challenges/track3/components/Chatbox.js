@@ -154,7 +154,7 @@ export default function Chatbox() {
   };
 
   return <div className='w-full pb-2'>
-    <div className='mb-4 p-2 w-full h-96 flex flex-col overflow-auto flex-nowrap items-center rounded-lg bg-gray-700 '>
+    <div className='mb-4 p-2 w-full h-[30rem] flex flex-col overflow-auto flex-nowrap items-center rounded-lg bg-gray-700 '>
       {
         messages.map((message, index) => {
           return <Message key={index} message={message}/>
