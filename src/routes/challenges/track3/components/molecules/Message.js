@@ -15,7 +15,7 @@ export default function Message({message}) {
       :
       <div className="flex flex-row w-full my-1">
         <div className="w-3/4 justify-self-start">
-        <div className="bg-gray-800 text-slate-200 p-2 rounded-lg">
+        <div className="bg-gray-900 text-slate-200 p-2 rounded-lg">
             {message.data}
           </div>
         </div>
