@@ -140,12 +140,12 @@ export default function Chatbox() {
   const sendSystemPrompt = () => {
     if (ws.current) {
       if (system_prompt.trim()) {
-        const systemPrompt = { type: 'system_prompt', data: system_prompt };
+        const systemPrompt = { type: 'system_prompt', data: system_prompt, input_timestamp: Date.now() / 1000 };
         ws.current.send(JSON.stringify(systemPrompt));
         setSystemPrompt('');
         console.log('Sent system prompt:', systemPrompt);
       }else{
-        const systemPrompt = { type: 'system_prompt', data: placeholderText };
+        const systemPrompt = { type: 'system_prompt', data: placeholderText, input_timestamp: Date.now() / 1000 };
         ws.current.send(JSON.stringify(systemPrompt));
         setSystemPrompt('');
         console.log('Sent system prompt:', systemPrompt);
