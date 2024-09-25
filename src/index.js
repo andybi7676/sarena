@@ -42,7 +42,7 @@ const router = createBrowserRouter(
           // action={contactAction}
         />
         <Route
-          path="challenges/track3"
+          path="challenges/track3/*"
           element={<Track3 />}
           // loader={contactLoader}
           // action={editAction}

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 // Import any icon library or use SVG icons
@@ -6,13 +6,40 @@ import { FaPlus, FaServer } from 'react-icons/fa'; // Using react-icons for exam
 
 export default function LandingPage() {
   const [modelNodes, setModelNodes] = useState([
-    { host: 'localhost', port: '8080', icon: <FaServer size={50} /> },
+    // { name: 'SPML SpokenLM', icon: <FaServer size={50} /> },
   ]);
   const [newNodeHost, setNewNodeHost] = useState('');
   const [newNodePort, setNewNodePort] = useState('');
   const [newNodeIcon, setNewNodeIcon] = useState(null);
   const [showAddForm, setShowAddForm] = useState(false);
   const navigate = useNavigate();
+
+  // Fetch model nodes from server when component loads
+  useEffect(() => {
+    const ws = new WebSocket('ws://localhost:8080/ws/model-status');
+
+    ws.onopen = () => {
+      console.log('Connected to model status WebSocket');
+    };
+
+    ws.onmessage = (event) => {
+      const data = JSON.parse(event.data);
+      setModelNodes(data);
+    };
+
+    ws.onerror = (error) => {
+      console.error('WebSocket error:', error);
+    };
+
+    ws.onclose = () => {
+      console.log('WebSocket connection closed');
+    };
+
+    // Clean up on component unmount
+    return () => {
+      ws.close();
+    };
+  }, []);
 
   const addModelNode = () => {
     if (newNodeHost.trim() && newNodePort.trim()) {
@@ -32,7 +59,7 @@ export default function LandingPage() {
   };
 
   const joinModelNode = (node) => {
-    const roomId = `${node.host}:${node.port}`;
+    const roomId = `${node.name}`;
     navigate(`meeting/${encodeURIComponent(roomId)}`);
   };
 
@@ -43,16 +70,39 @@ export default function LandingPage() {
           Available Model Nodes
         </p>
         <div className="grid grid-cols-2 gap-4">
-          {modelNodes.map((node, index) => (
+          {/* {modelNodes.map((node, index) => (
             <div
               key={index}
               className="bg-gray-800 rounded-xl p-4 flex flex-col items-center"
             >
               <div className="mb-2">{node.icon}</div>
-              <span className="text-white mb-2">{`${node.host}:${node.port}`}</span>
+              <span className="text-white mb-2">{`${node.name}`}</span>
               <button
                 className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-400"
                 onClick={() => joinModelNode(node)}
+              >
+                Join
+              </button>
+            </div>
+          ))} */}
+
+          {modelNodes.map((node, index) => (
+            <div
+              key={index}
+              className={`rounded-xl p-4 flex flex-col items-center ${
+                node.full ? 'bg-red-500' : node.status === 'off' ? 'bg-gray-700' : 'bg-gray-800'
+              }`}
+            >
+              <div className="mb-2">{node.icon || <FaServer size={50} />}</div>
+              <span className="text-white mb-2">{`${node.name}`}</span>
+              <button
+                className={`px-4 py-2 rounded-lg text-white ${
+                  node.full || node.status === 'off'
+                    ? 'bg-gray-500 cursor-not-allowed'
+                    : 'bg-blue-500 hover:bg-blue-400'
+                }`}
+                onClick={() => joinModelNode(node)}
+                disabled={node.full || node.status === 'off'}
               >
                 Join
               </button>
