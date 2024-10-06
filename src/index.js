@@ -16,6 +16,7 @@ import ErrorPage from './routes/ErrorPage';
 import ChallengePage from './routes/challenges/ChallengePage';
 import Track3 from './routes/challenges/track3/Track3';
 import Track2 from './routes/challenges/track2/Track2';
+import Track1 from './routes/challenges/track1/Track1';
 
 
 const router = createBrowserRouter(
@@ -32,6 +33,12 @@ const router = createBrowserRouter(
         <Route
           path="challenges"
           element={<ChallengePage />}
+          // loader={contactLoader}
+          // action={contactAction}
+        />
+        <Route
+          path="challenges/track1"
+          element={<Track1 />}
           // loader={contactLoader}
           // action={contactAction}
         />

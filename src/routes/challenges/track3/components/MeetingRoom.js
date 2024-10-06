@@ -13,7 +13,6 @@ export default function MeetingRoom() {
   const { roomId } = useParams();
   const navigate = useNavigate();
   const decodedRoomId = decodeURIComponent(roomId);
-  const [host, port] = decodedRoomId.split(':');
   const [transcriptVisible, setTranscriptVisible] = useState(false);
   const [micOn, setMicOn] = useState(true);
   const [transcript, setTranscript] = useState('');
@@ -112,9 +111,8 @@ export default function MeetingRoom() {
   useEffect(() => {
     console.log(`Room ID: ${roomId}`);
     console.log(`Decoded Room ID: ${decodedRoomId}`);
-    console.log(`Host: ${host}, Port: ${port}`);
 
-    const wsUrl = `ws://${host}:${port}/ws?roomId=${encodeURIComponent(
+    const wsUrl = `wss://slmarena.ntuspeechlab.com:8080/ws?roomId=${encodeURIComponent(
       roomId
     )}`;
     ws.current = new WebSocket(wsUrl);
@@ -213,12 +211,22 @@ export default function MeetingRoom() {
       if (ws.current) {
         ws.current.close();
       }
-      // Close all peer connections
+      // Destroy peer connections
       Object.values(peersRef.current).forEach((peer) => {
         peer.destroy();
       });
       if (serverPeerRef.current) {
         serverPeerRef.current.destroy();
+      }
+      // Stop local media stream tracks
+      if (localStream.current) {
+        localStream.current.getTracks().forEach((track) => {
+          track.stop();
+        });
+      }
+      // Cancel animation frames
+      if (animationFrameId.current) {
+        cancelAnimationFrame(animationFrameId.current);
       }
     };
   }, [roomId]);
@@ -301,9 +309,37 @@ export default function MeetingRoom() {
 
   // Leave the meeting room
   const leaveRoom = () => {
+
+    // Send message to server to leave the room
+    ws.current.send(
+      JSON.stringify({
+        type: 'leave_room',
+        roomId: roomId,
+        name: 'You',
+      })
+    )
+
+
     if (ws.current) {
       ws.current.close();
     }
+
+    // Destroy all peer connections
+    Object.values(peersRef.current).forEach((peer) => {
+      peer.destroy();
+    });
+    if (serverPeerRef.current) {
+      serverPeerRef.current.destroy();
+    }
+
+    // Stop all media tracks
+    if (localStream.current) {
+      localStream.current.getTracks().forEach((track) => {
+        track.stop();
+      });
+    }
+
+    // Navigate back to the landing page
     navigate('/challenges/track3');
   };
 
@@ -334,20 +370,20 @@ export default function MeetingRoom() {
         {participants.map((participant, index) => (
           <div
             key={index}
-            className={`w-32 h-32 bg-gray-800 rounded-xl flex flex-col items-center justify-center ${
+            className={`w-64 h-64 bg-gray-800 rounded-xl flex flex-col items-center justify-center ${
               participant.isTalking ? 'border-4 border-green-500' : ''
             }`}
           >
             {/* Participant Icon */}
-            <div className="mb-2">
+            <div className="mb-4">
               {participant.icon ? (
                 participant.icon
               ) : (
-                <div className="w-12 h-12 bg-gray-600 rounded-full"></div>
+                <div className="w-24 h-24 bg-gray-600 rounded-full"></div>
               )}
             </div>
             {/* Participant Name */}
-            <span className="text-white">{participant.name}</span>
+            <span className="text-white" style={{ fontSize: '18px' }}>{participant.name}</span>
           </div>
         ))}
       </div>

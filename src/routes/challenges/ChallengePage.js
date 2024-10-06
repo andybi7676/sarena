@@ -3,7 +3,8 @@ import React from 'react';
 export default function ChallengePage() {
   return <div className='flex flex-row w-full min-h-full divide-x divide-slate-600'>
     <div className='w-2/3'>
-      <div className="border-4">This is the Challenge Page.</div>
+    {/* <div className="border-4">This is the Challenge Page.</div> */}
+      <div style={{color: "white"}}>This is the Challenge Page.</div>
     </div>
     <div className='w-1/3'></div>
   </div>

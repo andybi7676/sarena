@@ -16,7 +16,7 @@ export default function LandingPage() {
 
   // Fetch model nodes from server when component loads
   useEffect(() => {
-    const ws = new WebSocket('ws://localhost:8080/ws/model-status');
+    const ws = new WebSocket('wss://slmarena.ntuspeechlab.com:8080/ws/model-status');
 
     ws.onopen = () => {
       console.log('Connected to model status WebSocket');
