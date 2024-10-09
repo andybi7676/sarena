@@ -6,6 +6,8 @@ import {
   FaMicrophoneSlash,
   FaClosedCaptioning,
   FaPhoneSlash,
+  FaAssistiveListeningSystems,
+  FaSpinner, // Use spinner icon
 } from 'react-icons/fa';
 import SimplePeer from 'simple-peer';
 
@@ -15,7 +17,11 @@ export default function MeetingRoom() {
   const decodedRoomId = decodeURIComponent(roomId);
   const [transcriptVisible, setTranscriptVisible] = useState(false);
   const [micOn, setMicOn] = useState(true);
-  const [transcript, setTranscript] = useState('');
+
+  // Modify transcript state to be an array of messages
+  const [transcript, setTranscript] = useState([]); // Changed from '' to []
+
+  const [isLoading, setIsLoading] = useState(true);
   const [participants, setParticipants] = useState([
     {
       name: 'You',
@@ -32,6 +38,7 @@ export default function MeetingRoom() {
       audioStream: null,
       analyserNode: null,
       audioContext: null,
+      statusIcon: null,
     },
   ]);
   const ws = useRef(null);
@@ -41,7 +48,7 @@ export default function MeetingRoom() {
   const animationFrameId = useRef(null);
   const modelAudioRef = useRef(null);
 
-  // Voice Activity Detection
+  // Voice Activity Detection (same as before)
   const analyzeAudio = useCallback(() => {
     participants.forEach((participant) => {
       if (participant.analyserNode) {
@@ -49,9 +56,11 @@ export default function MeetingRoom() {
           participant.analyserNode.frequencyBinCount
         );
         participant.analyserNode.getByteFrequencyData(dataArray);
-        const _voiceActivity = dataArray.reduce((accumulator, currentValue) => accumulator + currentValue, 0);
+        const _voiceActivity = dataArray.reduce(
+          (accumulator, currentValue) => accumulator + currentValue,
+          0
+        );
         const _voiceActivityLevel = Math.floor(_voiceActivity / 1000);
-        // console.log(`Frequency Data from ${participant.name}:`, _voiceActivityLevel);
         const isTalking = _voiceActivityLevel > 0; // Adjust threshold as needed
 
         // Update participant's talking state
@@ -60,6 +69,15 @@ export default function MeetingRoom() {
             p.name === participant.name ? { ...p, isTalking } : p
           )
         );
+        if (isTalking && participant.name === 'Model') {
+          setParticipants((prevParticipants) =>
+            prevParticipants.map((participant) =>
+              participant.name === 'Model'
+                ? { ...participant, statusIcon: null }
+                : participant
+            )
+          );
+        }
       }
     });
 
@@ -175,27 +193,42 @@ export default function MeetingRoom() {
           createPeerConnection(from, false);
         }
         peersRef.current[from].signal(data);
-      } else if (message.type.includes('text')) {
-        setTranscript((prev) => prev + '\n' + message.data);
-      } else if (message.type === 'model_speaking') {
-        // Set model's talking status
-        setParticipants((prevParticipants) =>
-          prevParticipants.map((participant) =>
-            participant.name === 'Model'
-              ? { ...participant, isTalking: true }
-              : participant
-          )
-        );
-        // Reset after a delay
-        setTimeout(() => {
+      }
+      // Handle user_text and system_text messages
+      else if (message.type === 'user_text') {
+        // Append user message with white color
+        setTranscript((prevTranscript) => [
+          ...prevTranscript,
+          { text: message.data, color: 'white' },
+        ]);
+      } else if (message.type === 'system_text') {
+        // Append system message with green color
+        setTranscript((prevTranscript) => [
+          ...prevTranscript,
+          { text: message.data, color: 'green' },
+        ]);
+      } else if (message.type === 'command') {
+        const command = message.data;
+        if (command === 'user_turn') {
+          setIsLoading(false);
+          // Show "ear" icon on model head
           setParticipants((prevParticipants) =>
             prevParticipants.map((participant) =>
               participant.name === 'Model'
-                ? { ...participant, isTalking: false }
+                ? { ...participant, statusIcon: 'ear' }
                 : participant
             )
           );
-        }, 2000); // Adjust the delay as needed
+        } else if (command === 'system_turn') {
+          // Show spinner icon on model head
+          setParticipants((prevParticipants) =>
+            prevParticipants.map((participant) =>
+              participant.name === 'Model'
+                ? { ...participant, statusIcon: 'spinner' }
+                : participant
+            )
+          );
+        }
       }
     };
 
@@ -309,7 +342,6 @@ export default function MeetingRoom() {
 
   // Leave the meeting room
   const leaveRoom = () => {
-
     // Send message to server to leave the room
     ws.current.send(
       JSON.stringify({
@@ -317,8 +349,7 @@ export default function MeetingRoom() {
         roomId: roomId,
         name: 'You',
       })
-    )
-
+    );
 
     if (ws.current) {
       ws.current.close();
@@ -366,24 +397,48 @@ export default function MeetingRoom() {
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gray-900">
+      {/* Loading Icon */}
+      {isLoading && (
+        <div className="absolute inset-0 flex items-center justify-center bg-gray-900 bg-opacity-75 z-50">
+          <FaSpinner className="animate-spin text-white" size={50} />
+        </div>
+      )}
+
       <div className="flex space-x-8 mb-8">
         {participants.map((participant, index) => (
           <div
             key={index}
-            className={`w-64 h-64 bg-gray-800 rounded-xl flex flex-col items-center justify-center ${
+            className={`w-64 h-64 bg-gray-800 rounded-xl flex flex-col items-center justify-center relative ${
               participant.isTalking ? 'border-4 border-green-500' : ''
             }`}
           >
             {/* Participant Icon */}
-            <div className="mb-4">
+            <div className="mb-4 relative">
               {participant.icon ? (
                 participant.icon
               ) : (
                 <div className="w-24 h-24 bg-gray-600 rounded-full"></div>
               )}
+              {/* Status Icon Overlay */}
+              {participant.statusIcon && (
+                <div className="absolute top-0 right-0">
+                  {participant.statusIcon === 'ear' && (
+                    <FaAssistiveListeningSystems size={24} color="white" />
+                  )}
+                  {participant.statusIcon === 'spinner' && (
+                    <FaSpinner
+                      size={24}
+                      color="white"
+                      className="animate-spin"
+                    />
+                  )}
+                </div>
+              )}
             </div>
             {/* Participant Name */}
-            <span className="text-white" style={{ fontSize: '18px' }}>{participant.name}</span>
+            <span className="text-white" style={{ fontSize: '18px' }}>
+              {participant.name}
+            </span>
           </div>
         ))}
       </div>
@@ -421,9 +476,40 @@ export default function MeetingRoom() {
 
       {/* Transcript */}
       {transcriptVisible && (
-        <div className="absolute bottom-16 w-full bg-black bg-opacity-75 text-white text-center p-2">
-          {/* Display transcript here */}
-          <p>{transcript}</p>
+        <div
+          className="absolute bottom-16 w-full bg-black bg-opacity-75 text-center p-2"
+          style={{ maxHeight: '200px', overflowY: 'auto' }}
+        >
+          {/* Display grouped transcript here */}
+          <div>
+            {(() => {
+              // Group messages by color
+              const groupedTranscript = [];
+              if (transcript.length > 0) {
+                let lastColor = transcript[0].color;
+                let lastText = transcript[0].text;
+                for (let i = 1; i < transcript.length; i++) {
+                  if (transcript[i].color === lastColor) {
+                    // Same color, concatenate text
+                    lastText += ' ' + transcript[i].text;
+                  } else {
+                    // Different color, push last message and reset
+                    groupedTranscript.push({ text: lastText, color: lastColor });
+                    lastColor = transcript[i].color;
+                    lastText = transcript[i].text;
+                  }
+                }
+                // Push the last accumulated message
+                groupedTranscript.push({ text: lastText, color: lastColor });
+              }
+
+              return groupedTranscript.map((message, index) => (
+                <p key={index} style={{ color: message.color }}>
+                  {message.text}
+                </p>
+              ));
+            })()}
+          </div>
         </div>
       )}
       {/* Add the audio element */}
