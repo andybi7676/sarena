@@ -168,6 +168,7 @@ export default function MeetingRoom() {
         if (serverPeerRef.current) {
           serverPeerRef.current.signal(message.data);
         }
+        setIsLoading(false);
       } else if (message.type === 'user_joined') {
         // Handle other participants joining
         const participantName = message.name;
@@ -210,7 +211,6 @@ export default function MeetingRoom() {
       } else if (message.type === 'command') {
         const command = message.data;
         if (command === 'user_turn') {
-          setIsLoading(false);
           // Show "ear" icon on model head
           setParticipants((prevParticipants) =>
             prevParticipants.map((participant) =>
@@ -396,7 +396,7 @@ export default function MeetingRoom() {
   }, [micOn]);
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-900">
+    <div className="flex flex-col items-center justify-center h-full w-full bg-gray-900 relative">
       {/* Loading Icon */}
       {isLoading && (
         <div className="absolute inset-0 flex items-center justify-center bg-gray-900 bg-opacity-75 z-50">
@@ -404,11 +404,11 @@ export default function MeetingRoom() {
         </div>
       )}
 
-      <div className="flex space-x-8 mb-8">
+      <div className="flex w-4/5 space-x-8 mb-8">
         {participants.map((participant, index) => (
           <div
             key={index}
-            className={`w-64 h-64 bg-gray-800 rounded-xl flex flex-col items-center justify-center relative ${
+            className={`w-1/2 h-64 bg-gray-800 rounded-xl flex flex-col items-center justify-center relative ${
               participant.isTalking ? 'border-4 border-green-500' : ''
             }`}
           >
@@ -443,8 +443,9 @@ export default function MeetingRoom() {
         ))}
       </div>
 
+
       {/* Bottom Bar */}
-      <div className="fixed bottom-0 w-full bg-gray-800 p-4 flex justify-center space-x-8">
+      <div className="absolute bottom-0 w-full bg-gray-800 p-4 flex justify-center space-x-8">
         {/* Close Mic */}
         <button
           className="text-white hover:text-gray-400"

@@ -104,7 +104,7 @@ export default function LandingPage() {
                 onClick={() => joinModelNode(node)}
                 disabled={node.full || node.status === 'off'}
               >
-                Join
+                {node.full ? 'Full' : node.status === 'off' ? 'Off' : 'Join'}
               </button>
             </div>
           ))}

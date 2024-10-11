@@ -8,23 +8,17 @@ import { v4 as uuidv4 } from 'uuid';
 function MachineMachineInterface() {
   const [ws, setWs] = useState(null);
   const [clientId] = useState(uuidv4());
-  const [modelAAudioSrc, setModelAAudioSrc] = useState(require('../demo/chinese_0001_A.wav'));
-  const [modelBAudioSrc, setModelBAudioSrc] = useState(require('../demo/chinese_0001_B.wav'));
+  const [modelAAudioSrc, setModelAAudioSrc] = useState('https://slmarena.ntuspeechlab.com:8080/demo/chinese_0001_A.wav');
+  const [modelBAudioSrc, setModelBAudioSrc] = useState('https://slmarena.ntuspeechlab.com:8080/demo/chinese_0001_B.wav');
   const [modelAPrompt, setModelAPrompt] = useState('你是一位旅行顧問，熟悉各國的旅遊景點和行程安排。你正在幫助一位顧客規劃他們的下一次海外旅行。請根據顧客的興趣和需求，提供合適的旅遊建議，並為他們制定一個全面的旅行計劃。');
   const [modelBPrompt, setModelBPrompt] = useState('你是一位熱愛旅遊的顧客，計劃在下個月進行一趟海外旅行，但還不確定要去哪裡。你希望得到旅行顧問的建議，請分享你的旅遊興趣、喜歡的活動，以及希望旅行中體驗的文化或風景，並在討論中積極回應顧問的建議。');
   const [isPlaying, setIsPlaying] = useState(false);
-  const [dataVersion, setDataVersion] = useState(0);
 
   const togglePlay = () => {
     setIsPlaying(!isPlaying);
   };
 
   const fetchData = () => {
-    setDataVersion((prev) => prev + 1);
-  };
-
-  useEffect(() => {
-
     // Initialize WebSocket connection
     const websocket = new WebSocket('wss://slmarena.ntuspeechlab.com:8080/ws/track2');
     websocket.onopen = () => {
@@ -33,12 +27,10 @@ function MachineMachineInterface() {
     websocket.onmessage = (event) => {
       const data = JSON.parse(event.data);
       console.log('Received message:', data);
-      // const demo_A = require(data.sample_path_A);
-      // const demo_B = require(data.sample_path_B);
-      // setModelAAudioSrc(demo_A);
-      // setModelBAudioSrc(demo_B);
-      // setModelAPrompt(data.system_prompt_A);
-      // setModelBPrompt(data.system_prompt_B);
+      setModelAAudioSrc(data.sample_path_A);
+      setModelBAudioSrc(data.sample_path_B);
+      setModelAPrompt(data.system_prompt_A);
+      setModelBPrompt(data.system_prompt_B);
     };
     websocket.onclose = () => {
       console.log('WebSocket connection closed');
@@ -52,6 +44,10 @@ function MachineMachineInterface() {
     return () => {
       websocket.close();
     };
+  };
+
+  useEffect(() => {
+    fetchData();
   }, []);
 
   return (
